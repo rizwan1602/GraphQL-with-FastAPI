@@ -31,6 +31,7 @@ r = redis.Redis(host=redis_host, port=redis_port, db=0)
 g = Graph()
 g.add_vertices(10)
 g.add_edges([(i, i + 1) for i in range(9)])
+g.add_edges([(9, 0)])
 
 @strawberry.type
 class Node:
@@ -43,7 +44,7 @@ class Edge:
 
 @strawberry.type
 class RouteData:
-    nodes: List[Node]
+    vertices: List[Node]
     edges: List[Edge]
 
 @strawberry.type
@@ -54,9 +55,9 @@ class StaticData:
 class Query:
     @strawberry.field(name="static_data")
     def static_data(self) -> StaticData:
-        nodes = [Node(id=v.index) for v in g.vs]
+        vertices = [Node(id=v.index) for v in g.vs]
         edges = [Edge(source=e.source, target=e.target) for e in g.es]
-        return StaticData(route_data=RouteData(nodes=nodes, edges=edges))
+        return StaticData(route_data=RouteData(vertices=vertices, edges=edges))
 
 schema = strawberry.Schema(query=Query)
 graphql_app = GraphQLRouter(schema)
@@ -66,6 +67,7 @@ app.include_router(graphql_app, prefix="/v1/static_data")
 class RobotLiveData(BaseModel):
     BatteryPercent: int
     RouteNo: int
+    MachineID: str
     LatestPose: int
     IsRobotEStopPressed: bool
     IsObstacleDetected: bool
@@ -90,6 +92,7 @@ async def update_live_data():
             robot_data = RobotLiveData(
                 BatteryPercent=random.randint(0, 100),
                 RouteNo=random.randint(0, 10),
+                MachineID="MV250"+str(random.randint(0, 100)),
                 LatestPose=random.randint(0, 9),
                 IsRobotEStopPressed=bool(random.getrandbits(1)),
                 IsObstacleDetected=bool(random.getrandbits(1)),
