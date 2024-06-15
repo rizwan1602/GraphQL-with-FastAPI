@@ -1,4 +1,4 @@
-# GraphQL with FastAPI.
+## GraphQL with FastAPI.
 
 This project demonstrates how to build a GraphQL API using FastAPI and SQLAlchemy.
 
